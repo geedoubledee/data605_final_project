@@ -1,0 +1,189 @@
+---
+title: "Data 605 - Final Project"
+author: "Glen Dale Davis"
+date: "2023-05-12"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r packages, warning = FALSE, message = FALSE}
+library(tidyverse)
+
+```
+
+## Problem 1:
+
+### Probability Density 1: X~Gamma:
+
+Using R, generate a random variable $X$ that has $10,000$ random Gamma pdf values. A Gamma pdf is completely describe by $n$ (a size parameter) and lambda ($\lambda$, a shape parameter). Choose any $n$ greater $3$ and an expected value ($\lambda$) between $2$ and $10$ (you choose).
+
+```{r problem1_setup1}
+
+```
+
+### Probability Density 2: Y~Sum of Exponentials:
+
+Then generate $10,000$ observations from the sum of $n$ exponential pdfs with rate/shape parameter ($\lambda$). The $n$ and $\lambda$ must be the same as in the previous case. (e.g., mysum=rexp(10000, $\lambda$)+rexp(10000, $\lambda$) 
+
+```{r problem1_setup2}
+
+```
+
+### Probability Density 3: Z~Exponential: 
+
+Then generate $10,000$ observations from a single exponential pdf with rate/shape parameter ($\lambda$).
+
+```{r problem1_setup3}
+
+```
+
+### NOTE:
+
+The Gamma distribution is quite common in data science. For example, it is used to model failures for multiple processes when each of those processes has the same failure rate. The exponential is used for constant failure rates, service times, etc.
+
+### 1a:
+
+Calculate the empirical expected value (means) and variances of all three pdfs.
+
+```{r problem1_1_a}
+
+```
+
+### 1b:
+
+Using calculus, calculate the expected value and variance of the Gamma pdf (X).  Using the moment generating function for exponentials, calculate the expected value of the single exponential (Z) and the sum of exponentials (Y).
+
+```{r problem1_1_b}
+
+```
+
+### 1c-e:
+
+Probability. For pdf Z (the exponential), calculate empirically probabilities a through c (below). Then evaluate through calculus whether the memoryless property holds.  
+
+a. $P(Z>\lambda|Z>\frac{\lambda}{2})$
+
+b. $P(Z>2\lambda|Z>\lambda)$
+
+c. $P(Z>3\lambda|Z>\lambda)$
+
+```{r problem1_1_c_to_e}
+
+```
+
+## Problem 2:
+
+### Descriptive and Inferential Statistics (5 Points):
+
+Provide univariate descriptive statistics and appropriate plots for the training data set.
+
+```{r problem2_1_a}
+
+```
+
+Provide a scatterplot matrix for at least two of the independent variables and the dependent variable.
+
+```{r problem2_1_b}
+
+```
+
+Derive a correlation matrix for any three quantitative variables in the dataset.
+
+```{r problem2_1_c}
+
+```
+
+Test the hypotheses that the correlations between each pairwise set of variables is 0 and provide an 80% confidence interval.
+
+```{r problem2_1_d}
+
+```
+
+Discuss the meaning of your analysis.
+
+```{r problem2_1_e}
+
+```
+
+Would you be worried about familywise error? Why or why not?
+
+### Linear Algebra and Correlation (5 Points):
+
+Invert your correlation matrix from above. (This is known as the precision matrix and contains variance inflation factors on the diagonal.)
+
+```{r problem2_2_a}
+
+```
+
+Multiply the correlation matrix by the precision matrix, and then multiply the precision matrix by the correlation matrix.
+
+```{r problem2_2_b}
+
+```
+
+Conduct LU decomposition on the matrix.
+
+```{r problem2_2_c}
+
+```
+
+### Calculus-Based Probability & Statistics (5 Points):
+
+Many times, it makes sense to fit a closed form distribution to data. Select a variable in the Kaggle.com training dataset that is skewed to the right, shift it so that the minimum value is absolutely above zero if necessary. Then load the MASS package and run fitdistr to fit an exponential probability density function. (See  [this link](https://stat.ethz.ch/R-manual/R-devel/library/MASS/html/fitdistr.html)).
+
+```{r problem2_3_a}
+
+```
+
+Find the optimal value of $\lambda$ for this distribution, and then take 1000 samples from this exponential distribution using this value (e.g., rexp(1000, $\lambda$)).
+
+```{r problem2_3_b}
+
+```
+
+Plot a histogram and compare it with a histogram of your original variable.
+
+```{r problem2_3_c}
+
+```
+
+Using the exponential pdf, find the 5th and 95th percentiles using the cumulative distribution function (CDF).
+
+```{r problem2_3_d}
+
+```
+
+Also generate a 95% confidence interval from the empirical data, assuming normality.
+
+```{r problem2_3_e}
+
+```
+
+Finally, provide the empirical 5th percentile and 95th percentile of the data. Discuss. 
+
+```{r problem2_3_f}
+
+```
+
+### Modeling (10 points):
+
+Build some type of multiple regression  model and submit your model to the competition board.
+
+```{r problem2_4_a}
+
+```
+
+Provide your complete model summary and results with analysis.
+
+```{r problem2_4_b}
+
+```
+
+Report your Kaggle.com user name and score. Provide a screen snapshot of your score with your name identifiable.
+
+```{r problem2_4_c}
+
+```
