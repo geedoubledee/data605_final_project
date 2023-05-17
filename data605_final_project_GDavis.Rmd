@@ -661,7 +661,7 @@ We can see by plotting the residuals vs. the fitted values that the residuals ar
 ```{r }
 lm_bc <- boxcox(train_df_model_sub_lm_update)
 print(lm_lambda <- lm_bc$x[which.max(lm_bc$y)])
-train_df_model_sub_lm_new <- lm(((SalePrice^(lm_lambda-1))/lm_lambda) ~ Neighborhood +
+train_df_model_sub_lm_new <- lm(((SalePrice^lm_lambda-1)/lm_lambda) ~ Neighborhood +
     LotArea + OverallQual +  GrLivArea + TotalBsmtSF + BedroomAbvGr + Fireplaces +
         GarageCars, data = train_df_model_sub)
 summary(train_df_model_sub_lm_new)
@@ -687,18 +687,26 @@ plot(train_df_model_sub_lm_new)
 
 The residuals follow the normal distribution line much more closely now, though the lower tail is still problematic. 
 
+We make our predictions on the test data that was withheld from the model during training.
+
 ```{r }
 my_url2 <- "https://raw.githubusercontent.com/geedoubledee/data605_final_project/main/test.csv"
 test_df <- read.csv(my_url2)
 test_df$Neighborhood <- as.factor(test_df$Neighborhood)
 test_df$SalePrice <- predict(train_df_model_sub_lm_new, test_df)
 test_df$SalePrice <- inv_boxcox(test_df$SalePrice, lm_lambda)
-
+submission_cols <- c("Id", "SalePrice")
+submission <- test_df[, colnames(test_df) %in% submission_cols]
+write.csv(submission, "submission.csv", row.names = FALSE)
 
 ```
 
 **Report your Kaggle.com user name and score. Provide a screen snapshot of your score with your name identifiable.**
 
-```{r problem2_4_c}
+Username: https://www.kaggle.com/glendavis
 
-```
+Score: 0.43507
+
+Screenshot:
+
+![](https://raw.githubusercontent.com/geedoubledee/data605_final_project/main/kaggle_submission_screenshot.png)
