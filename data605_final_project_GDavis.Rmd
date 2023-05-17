@@ -11,6 +11,31 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r packages, warning = FALSE, message = FALSE}
 library(tidyverse)
+library(scales)
+library(GGally)
+library(knitr)
+library(matrixcalc)
+library(MASS)
+library(ldsr)
+
+
+```
+
+```{r set_seed}
+set.seed(87)
+
+```
+
+```{r palette}
+palette <- c("#49c6e5", "#255f85", "#fae1df", "#ff3864", "#130303")
+```
+
+```{r matrix_print_function}
+to_LaTeX <- function(A){
+    rows <- apply(A, MARGIN=1, paste, collapse = " & ")
+    matrix_string <- paste(rows, collapse = " \\\\ ")
+    return(paste("\\begin{bmatrix}", matrix_string, "\\end{bmatrix}"))
+}
 
 ```
 
@@ -18,151 +43,551 @@ library(tidyverse)
 
 ### Probability Density 1: X~Gamma:
 
-Using R, generate a random variable $X$ that has $10,000$ random Gamma pdf values. A Gamma pdf is completely describe by $n$ (a size parameter) and lambda ($\lambda$, a shape parameter). Choose any $n$ greater $3$ and an expected value ($\lambda$) between $2$ and $10$ (you choose).
+**Using R, generate a random variable $X$ that has $10,000$ random Gamma pdf values. A Gamma pdf is completely describe by $n$ (a size parameter) and lambda ($\lambda$, a shape parameter). Choose any $n$ greater $3$ and an expected value ($\lambda$) between $2$ and $10$ (you choose).**
 
 ```{r problem1_setup1}
+alpha <- 10
+lambda <- 6
+X <- rgamma(n = 10000, shape = alpha, rate = lambda)
 
 ```
 
 ### Probability Density 2: Y~Sum of Exponentials:
 
-Then generate $10,000$ observations from the sum of $n$ exponential pdfs with rate/shape parameter ($\lambda$). The $n$ and $\lambda$ must be the same as in the previous case. (e.g., mysum=rexp(10000, $\lambda$)+rexp(10000, $\lambda$) 
+**Then generate $10,000$ observations from the sum of $n$ exponential pdfs with rate/shape parameter ($\lambda$). The $n$ and $\lambda$ must be the same as in the previous case. (e.g., mysum=rexp(10000, $\lambda$)+rexp(10000, $\lambda$)**
 
 ```{r problem1_setup2}
+Y <- rexp(n = 10000, rate = lambda) + rexp(n = 10000, rate = lambda) + rexp(n = 10000, rate = lambda) + rexp(n = 10000, rate = lambda) + rexp(n = 10000, rate = lambda) + rexp(n = 10000, rate = lambda) + rexp(n = 10000, rate = lambda) + rexp(n = 10000, rate = lambda) + rexp(n = 10000, rate = lambda) + rexp(n = 10000, rate = lambda)
 
 ```
 
 ### Probability Density 3: Z~Exponential: 
 
-Then generate $10,000$ observations from a single exponential pdf with rate/shape parameter ($\lambda$).
+**Then generate $10,000$ observations from a single exponential pdf with rate/shape parameter ($\lambda$).**
 
 ```{r problem1_setup3}
+Z <- rexp(n = 10000, rate = lambda)
 
 ```
 
 ### NOTE:
 
-The Gamma distribution is quite common in data science. For example, it is used to model failures for multiple processes when each of those processes has the same failure rate. The exponential is used for constant failure rates, service times, etc.
+**The Gamma distribution is quite common in data science. For example, it is used to model failures for multiple processes when each of those processes has the same failure rate. The exponential is used for constant failure rates, service times, etc.**
+
+**(5 Points).**
 
 ### 1a:
 
-Calculate the empirical expected value (means) and variances of all three pdfs.
+**Calculate the empirical expected value (means) and variances of all three pdfs.**
 
 ```{r problem1_1_a}
+mean_X <- mean(X)
+mean_Y <- mean(Y)
+mean_Z <- mean(Z)
+var_X <- var(X)
+var_Y <- var(Y)
+var_Z <- var(Z)
 
 ```
+
+Mean(X): $`r mean_X`$, Var(X): $`r var_X`$
+
+Mean(Y): $`r mean_Y`$, Var(Y): $`r var_Y`$
+
+Mean(Z): $`r mean_Z`$, Var(Z): $`r var_Z`$
 
 ### 1b:
 
-Using calculus, calculate the expected value and variance of the Gamma pdf (X).  Using the moment generating function for exponentials, calculate the expected value of the single exponential (Z) and the sum of exponentials (Y).
+**Using calculus, calculate the expected value and variance of the Gamma pdf (X).**
 
-```{r problem1_1_b}
+$M_X(t) = (1 - \frac{t}{\lambda})^{-\alpha}$
 
-```
+$u = (1 - \frac{t}{\lambda})$
+
+$M^{\prime}_X(t) = (-\alpha)(u)^{-\alpha-1}(-\frac{1}{\lambda})$
+
+$M^{\prime}_X(t) = \frac{\alpha}{\lambda}(u)^{-\alpha-1}$
+
+$M^{\prime}_X(t) = \frac{\alpha(1 - \frac{t}{\lambda})}{\lambda}^{-\alpha-1}$
+
+$M^{\prime}_X(0) = \frac{\alpha(1 - \frac{0}{\lambda})}{\lambda}^{-\alpha-1} = \frac{\alpha}{\lambda}$
+
+Mean(X) = $\frac{\alpha}{\lambda} = \frac{10}{6} \approx 1.67$
+
+$M^{\prime\prime}_X(t) = \frac{\alpha(-\alpha-1)(u)^{-\alpha-2}(-\frac{1}{\lambda})}{\lambda}$
+
+$M^{\prime\prime}_X(t) = -\frac{\alpha(-\alpha-1)(1 - \frac{t}{\lambda})^{-\alpha-2}}{\lambda^2} = \frac{\alpha(\alpha+1)}{(t-\lambda)^2(1 - \frac{t}{\lambda})^{\alpha}}$
+
+$M^{\prime\prime}_X(0) = \frac{\alpha(\alpha+1)}{(0-\lambda)^2(1 - \frac{0}{\lambda})^{\alpha}} = \frac{\alpha(\alpha+1)}{(-\lambda)^2}$
+
+Var(X) = $\frac{\alpha(\alpha+1)}{(-\lambda)^2} - \mu^2= \frac{(10(10 + 1)}{-6^2} - 1.67^2 = \frac{110}{36} - 2.79 = 3.06 - 2.79 \approx 0.27$
+
+**Using the moment generating function for exponentials, calculate the expected value of the single exponential (Z) and the sum of exponentials (Y).**
+
+$M_X(t) = \frac{\lambda}{\lambda - t}$
+
+$u = \lambda - t$
+
+$u^\prime = -1$
+
+$M_X(t) = \lambda\frac{1}{u}$
+
+$M_X^{\prime}(t) = -\lambda\frac{u^\prime}{(u)^2} = -\lambda\frac{(-1)}{(\lambda-t)^2} = \frac{\lambda}{(\lambda-t)^2}$
+
+$M_X^{\prime}(0) = \frac{\lambda}{(\lambda-0)^2} = \frac{\lambda}{\lambda^2} = \frac{1}{\lambda}$
+
+Mean(Z) = $\frac{1}{\lambda} = \frac{1}{6} \approx 0.167$
+
+$M_X(t) = (\frac{\lambda}{\lambda - t})^\alpha$
+
+$u = \frac{\lambda}{\lambda - t}$
+
+$u^\prime = \lambda(-\frac{1}{(\lambda-t)^2})$
+
+$M_X^{\prime}(t) = -\alpha(\frac{\lambda}{\lambda - t})^{\alpha-1}\times \lambda(-\frac{1}{(\lambda-t)^2}) = \frac{\alpha\lambda(\frac{\lambda}{\lambda - t})^{\alpha-1}}{(\lambda-t)^2} = \frac{\alpha(\frac{\lambda}{\lambda - t})^{\alpha}}{\lambda-t}$
+
+$M_X^{\prime}(0) = \frac{\alpha(\frac{\lambda}{\lambda - t})^{\alpha}}{\lambda-t} = \frac{\alpha(\frac{\lambda}{\lambda - 0})^{\alpha}}{\lambda - 0} = \frac{\alpha}{\lambda}$
+
+Mean(Y) = $\frac{\alpha}{\lambda} = \frac{10}{6} \approx 1.67$
 
 ### 1c-e:
 
-Probability. For pdf Z (the exponential), calculate empirically probabilities a through c (below). Then evaluate through calculus whether the memoryless property holds.  
+**Probability. For pdf Z (the exponential), calculate empirically probabilities a through c (below). Then evaluate through calculus whether the memoryless property holds.** 
 
-a. $P(Z>\lambda|Z>\frac{\lambda}{2})$
+Note: In all the probability statements below, I take $\lambda$ to mean the value we defined at the beginning of Problem 1. In the evaluations where we actually find the conditional probability, it is that value's reciprocal. With a $\lambda$ of 6, we can pretend a machine fails 6 times per year. So the machine takes on average $\frac{1}{6}$ years to fail. That is the mean of the distribution and the machine's failure rate.
 
-b. $P(Z>2\lambda|Z>\lambda)$
+**a. $P(Z > \lambda | Z > \frac{\lambda}{2})$**
 
-c. $P(Z>3\lambda|Z>\lambda)$
+We take this to mean: what is the probability that we have more than 6 failures this year given that we have already had 3 failures?
 
-```{r problem1_1_c_to_e}
+$P(Z \leq \lambda | Z > \frac{\lambda}{2}) = \frac{P(Z \leq \lambda \cap Z > \frac{\lambda}{2})}{P(Z > \frac{\lambda}{2})} = \frac{P(\frac{\lambda}{2} < Z \leq \lambda)}{P(Z > \frac{\lambda}{2})} = \frac{P(\frac{6}{2} < Z \leq 6)}{P(Z > \frac{6}{2})} = \frac{P(3 < Z \leq 6)}{P(Z > 3)}$
+
+$= \frac{e^{-3\lambda} - e^{-6\lambda}}{e^{-3\lambda}} = 1 - e^{-3\lambda}$
+
+$P(Z > \lambda | Z > \frac{\lambda}{2}) = 1 - P(Z \leq \lambda | Z > \frac{\lambda}{2}) = 1 - (1 - e^{-3\lambda}) = e^{-3\lambda} = e^{-\frac{3}{6}} \approx 0.607$
+
+The probability that we will have more than 6 failures given that we have already had 3 failures is the same as the probability that we will have more than 3 failures: $0.607$.
+
+**b. $P(Z > 2\lambda | Z > \lambda)$**
+
+We take this to mean: what is the probability that we have more than 12 failures this year given that we have already had 6 failures?
+
+$P(Z \leq 2\lambda | Z > \lambda) = \frac{P(Z \leq 2\lambda \cap Z > \lambda)}{P(Z > \lambda)} = \frac{P(\lambda < Z \leq 2\lambda)}{P(Z > \lambda)} = \frac{P(6 < Z < 2(6))}{P(Z > 6)} = \frac{P(6 < Z < 12}{P(Z > 6)}$
+
+$= \frac{e^{-6\lambda} - e^{-12\lambda}}{e^{-6\lambda}} = 1 - e^{-6\lambda}$
+
+$P(Z > 2\lambda | Z > \lambda) = 1 - (1 - e^{-6\lambda}) = e^{-6\lambda} = e^{-\frac{6}{6}} \approx 0.368$
+
+The probability that we will have more than 12 failures given that we have already had 6 failures is the same as the probability that we will have more than 6 failures: $0.368$.
+
+**c. $P(Z > 3\lambda | Z > \lambda)$**
+
+We take this to mean: what is the probability that we have more than 18 failures this year given that we have already had 6 failures?
+
+$P(Z \leq 3\lambda | Z > \lambda) = \frac{P(Z \leq 3\lambda \cap Z > \lambda)}{P(Z > \lambda)} = \frac{P(\lambda < Z \leq 3\lambda)}{P(Z > \lambda)} = \frac{P(6 < Z < 3(6))}{P(Z > 6)} = \frac{P(6 < Z < 18}{P(Z > 6)}$
+
+$= \frac{e^{-6\lambda} - e^{-18\lambda}}{e^{-6\lambda}} = 1 - e^{-12\lambda}$
+
+$P(Z > 3\lambda | Z > \lambda) = 1 - (1 - e^{-12\lambda}) = e^{-12\lambda} = e^{-\frac{12}{6}} \approx 0.135$
+
+The probability that we will have more than 18 failures given that we have already had 6 failures is the same as the probability that we will have more than 12 failures: $0.135$.
+
+**(5 Points). Loosely investigate whether $P(YZ) = P(Y) P(Z)$ by building a table with quartiles and evaluating the marginal and joint probabilities.**
+
+```{r}
+q <- c(0.25, 0.25, 0.25, .25)
+qY <- matrix(q, nrow = 4, ncol = 4, byrow = FALSE)
+qZ <- matrix(q, nrow = 4, ncol = 4, byrow = TRUE)
+A <- as.data.frame(matrix(qY * qZ, nrow=4, ncol=4))
+c <- c("1st Quartile Y", "2nd Quartile Y", "3rd Quartile Y", "4th Quartile Y")
+colnames(A) <- c
+A <- A %>%
+    mutate(Sum = rowSums(.[1:ncol(A)]))
+A <- rbind(A, colSums(A))
+r <- c("1st Quartile Z", "2nd Quartile Z", "3rd Quartile Z", "4th Quartile Z",
+       "Sum")
+rownames(A) <- r
+kable(A, format="simple")
 
 ```
+
+The joint probability that you observe a variable in any quartile of the Y distribution and a variable in any quartile of the Z distribution is $P(Y, Z) = P(Y | Z) \times P(Z) = 0.25 * 0.25 = 0.0625$.
+
+The marginal probability that you observe a variable in any quartile of the Y distribution is $0.25$, regardless of the Z variable. Similarly, the marginal probability that you observe a variable in any quartile of the Z distribution is $0.25$, regardless of the Y variable.
+
+$P(YZ) = P(Y) P(Z)$
+
+**(5 Points). Check to see if independence holds by using Fisher’s Exact Test and the Chi Square Test. What is the difference between the two? Which is most appropriate?**
+
+Our understanding is neither test is for numerical data, so we binned the numerical variables into factors based on their quartiles. This practice may be discouraged based on what we've read, but it seemed like the best option.
+
+```{r }
+df <- as.data.frame(cbind(Y, Z))
+df <- df %>%
+    mutate(Y = ntile(.$Y, 4), Z = ntile(.$Z, 4))
+cols <- c("YQuantile", "ZQuantile")
+colnames(df) <- cols
+df$YQuantile <- as.factor(df$YQuantile)
+df$ZQuantile <- as.factor(df$ZQuantile)
+contingency <- xtabs(~ ZQuantile + YQuantile, data = df)
+contingency
+
+```
+
+The Chi Square test is more appropriate because we have a large sample, so we perform that first. For both tests, the null hypothesis is that the variables are independent. The alternative hypothesis is that the variables are not independent.
+
+```{r }
+test <- chisq.test(contingency)
+test
+
+```
+
+The p-value for the Chi Square test is large: 0.1345. So we reject the first null hypothesis that the variables are independent. 
+
+Next we perform the Fisher's Exact test. 
+
+```{r }
+test2 <- fisher.test(contingency, simulate.p.value = TRUE)
+test2
+
+```
+
+The p-value for the Fisher's Exact test is also large: 0.1369. So we reject the second null hypothesis that the variables are independent. 
 
 ## Problem 2:
 
 ### Descriptive and Inferential Statistics (5 Points):
 
-Provide univariate descriptive statistics and appropriate plots for the training data set.
+**Provide univariate descriptive statistics and appropriate plots for the training data set.**
 
-```{r problem2_1_a}
+```{r problem2_1_a_1}
+my_url <- "https://raw.githubusercontent.com/geedoubledee/data605_final_project/main/train.csv"
+train_df <- read.csv(my_url)
+cols <- c("YearBuilt", "BedroomAbvGr", "GrLivArea", "FullBath", "BsmtFullBath",
+          "SalePrice", "OverallQual", "OverallCond")
+train_df_sub <- train_df[, colnames(train_df) %in% cols]
+train_df_sub <- train_df_sub %>%
+    mutate(AllFullBath = BsmtFullBath + FullBath)
+summary(train_df_sub)
 
 ```
 
-Provide a scatterplot matrix for at least two of the independent variables and the dependent variable.
+There are 1,460 observations in the training dataset. Each observation is a sold home. The median sale price for a home in this dataset is \$163,000.00. Below, we plot the distribution of sale price in thousands of dollars. 
+
+```{r problem2_1_a_2}
+ggplot(data = train_df_sub, aes(x = SalePrice / 1000)) +
+    geom_histogram(binwidth=25, color = palette[2], fill = palette[1]) +
+    scale_x_continuous(breaks = seq(25, 775, by = 50)) +
+    scale_y_continuous(breaks = seq(0, 275, by = 25)) +
+    labs(x = "Sale Price in Thousands of $", y = "Frequency",
+         title = "Distribution of Sale Price in Thousands of $") +
+    geom_vline(aes(xintercept = mean(SalePrice / 1000)), color = palette[4],
+               linewidth = 0.5) +
+    annotate("text", x = mean(train_df_sub$SalePrice / 1000) + 35,
+             y=275, label="Mean", color = palette[4]) +
+    geom_vline(aes(xintercept = mean(SalePrice / 1000) + 3 * sd(SalePrice / 1000)),
+               color = palette[4], linewidth = 0.5, linetype = "dashed") +
+    annotate("text", x = mean(
+        train_df_sub$SalePrice / 1000) + 3 * sd(train_df_sub$SalePrice / 1000) +
+            35, y=275, label="+3 SD", color = palette[4]) +
+    theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.background = element_blank(),
+          axis.line = element_line(colour = palette[5]))
+
+```
+
+The distribution is unimodal and right-skewed. Several homes that are significantly more expensive than the median sale price are pulling the mean up. Homes near a sale price of \$425,000.00 and above are outliers, as they are more than 3 standard deviations above the mean. 
+
+Next we look at the distribution of above ground living area, measured in square feet. 
+
+```{r problem2_1_a_3}
+ggplot(data = train_df_sub, aes(x = GrLivArea)) +
+    geom_histogram(binwidth=250, color = palette[2], fill = palette[1]) +
+    scale_x_continuous(breaks = seq(0, 6000, by = 500)) +
+    scale_y_continuous(breaks = seq(0, 300, by = 25)) +
+    labs(x = "Above Ground Living Area (Sq. Ft.)", y = "Frequency",
+         title = "Distribution of Above Ground Living Area (Sq. Ft.)") +
+    geom_vline(aes(xintercept = mean(GrLivArea)), color = palette[4],
+               linewidth = 0.5) +
+    annotate("text", x = mean(train_df_sub$GrLivArea) + 350, y=275,
+             label="Mean", color = palette[4]) +
+    geom_vline(aes(xintercept = mean(GrLivArea) + 3 * sd(GrLivArea)),
+               color = palette[4], linewidth = 0.5, linetype = "dashed") +
+    annotate("text", x = mean(train_df_sub$GrLivArea) + 3 *
+                 sd(train_df_sub$GrLivArea) + 325,
+             y=275, label="+3 SD", color = palette[4]) +
+    theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.background = element_blank(),
+          axis.line = element_line(colour = palette[5]))
+
+```
+
+The distribution is unimodal and right-skewed. The median above ground living area is 1,464 sq. ft. Some homes with significantly larger amounts of above ground living area are pulling the mean up. Homes with nearly 3,250 sq. ft. of above ground living area and above are outliers, as they are more than 3 standard deviations above the mean.
+
+Next we look at the distribution of bedrooms. Basement-level bedrooms are not included.
+
+```{r problem2_1_a_4}
+ggplot(data = train_df_sub, aes(x = BedroomAbvGr)) +
+    geom_histogram(binwidth=1, color = palette[2], fill = palette[1]) +
+    scale_x_continuous(breaks = seq(0, 8, by = 1)) +
+    scale_y_continuous(breaks = seq(0, 800, by = 100)) +
+    labs(x = "Bedrooms (Above Ground Only)", y = "Frequency",
+         title = "Distribution of Bedrooms (Above Ground Only)") +
+    geom_vline(aes(xintercept = mean(BedroomAbvGr)), color = palette[4],
+               linewidth = 0.5) +
+    annotate("text", x = mean(train_df_sub$BedroomAbvGr) + 1.1, y=800,
+             label="Mean", color = palette[4]) +
+    geom_vline(aes(xintercept = mean(BedroomAbvGr) - 3 * sd(BedroomAbvGr)),
+               color = palette[4], linewidth = 0.5, linetype = "dashed") +
+    annotate("text", x = mean(train_df_sub$BedroomAbvGr) - 3 *
+                 sd(train_df_sub$BedroomAbvGr) + 0.5,
+             y=800, label="-3 SD", color = palette[4]) +
+    geom_vline(aes(xintercept = mean(BedroomAbvGr) + 3 * sd(BedroomAbvGr)),
+               color = palette[4], linewidth = 0.5, linetype = "dashed") +
+    annotate("text", x = mean(train_df_sub$BedroomAbvGr) + 3 *
+                 sd(train_df_sub$BedroomAbvGr) + 0.5,
+             y=800, label="+3 SD", color = palette[4]) +
+    theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.background = element_blank(),
+          axis.line = element_line(colour = palette[5]))
+
+```
+
+The distribution is unimodal and nearly normal. The mean number of bedrooms is 2.9. There are some homes with 0 or 6+ bedrooms above ground, which are outliers since they are more than 3 standard deviations away from the mean.
+
+Lastly we look at the distribution of full bathrooms, including basement-level full bathrooms.
+
+```{r problem2_1_a_5}
+ggplot(data = train_df_sub, aes(x = AllFullBath)) +
+    geom_histogram(binwidth=1, color = palette[2], fill = palette[1]) +
+    scale_x_continuous(breaks = seq(0, 6, by = 1)) +
+    scale_y_continuous(breaks = seq(0, 700, by = 50)) +
+    labs(x = "All Full Bathrooms", y = "Frequency",
+         title = "Distribution of All Full Bathrooms") +
+    geom_vline(aes(xintercept = mean(AllFullBath)), color = palette[4],
+               linewidth = 0.5) +
+    annotate("text", x = mean(train_df_sub$AllFullBath) + 1.1, y=700,
+             label="Mean", color = palette[4]) +
+    geom_vline(aes(xintercept = mean(AllFullBath) + 3 * sd(AllFullBath)),
+               color = palette[4], linewidth = 0.5, linetype = "dashed") +
+    annotate("text", x = mean(train_df_sub$AllFullBath) + 3 *
+                 sd(train_df_sub$AllFullBath) + 0.5,
+             y=700, label="+3 SD", color = palette[4]) +
+    theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.background = element_blank(),
+          axis.line = element_line(colour = palette[5]))
+
+```
+
+The distribution is unimodal and nearly normal. The mean number of bathrooms is 2.0. There is only one outlier that is more than 3 standard deviations above the mean, and it is a home with 6 baths.
+
+**Provide a scatterplot matrix for at least two of the independent variables and the dependent variable.**
 
 ```{r problem2_1_b}
+reorder <- c("SalePrice", "OverallQual", "OverallCond", "YearBuilt", "GrLivArea", "BedroomAbvGr", "BsmtFullBath", "FullBath", "AllFullBath")
+train_df_sub <- train_df_sub[, reorder]
+ggpairs(train_df_sub, columns=c(1, 2, 5))
 
 ```
 
-Derive a correlation matrix for any three quantitative variables in the dataset.
+**Derive a correlation matrix for any three quantitative variables in the dataset.**
 
 ```{r problem2_1_c}
+cols <- c("GrLivArea", "BedroomAbvGr", "FullBath")
+X <- as.matrix(train_df_sub[, colnames(train_df_sub) %in% cols])
+M <- cor(X)
+M
 
 ```
 
-Test the hypotheses that the correlations between each pairwise set of variables is 0 and provide an 80% confidence interval.
+**Test the hypotheses that the correlations between each pairwise set of variables is 0 and provide an 80% confidence interval.**
 
-```{r problem2_1_d}
+$\alpha = 0.2$
+
+Null Hypothesis 1: $H_0: \rho = 0$
+
+Alternate Hypothesis 1: $H_a: \rho \neq 0$
+
+```{r problem2_1_d_1}
+cor.test(X[, "GrLivArea"], X[, "BedroomAbvGr"], conf.level=0.8)
+
+```
+We are $80%$ confident that $\rho$, the population correlation coefficient for "GrLivArea" and "BedroomAbvGr," is between $0.496$ and $0.545$. We reject null hypothesis 1 in favor of the alternate hypothesis 1.
+
+Null Hypothesis 2: $H_0: \rho = 0$
+
+Alternate Hypothesis 2: $H_a: \rho \neq 0$
+
+```{r problem2_1_d_2}
+cor.test(X[, "GrLivArea"], X[, "FullBath"], conf.level=0.8)
 
 ```
 
-Discuss the meaning of your analysis.
+We are $80%$ confident that $\rho$, the population correlation coefficient for "GrLivArea" and "FullBath," is between $0.609$ and $0.650$. We reject null hypothesis 2 in favor of the alternate hypothesis 2.
 
-```{r problem2_1_e}
+Null Hypothesis 3: $H_0: \rho = 0$
+
+Alternate Hypothesis 3: $H_a: \rho \neq 0$
+
+```{r problem2_1_d_3}
+cor.test(X[, "BedroomAbvGr"], X[, "FullBath"], conf.level=0.8)
 
 ```
 
-Would you be worried about familywise error? Why or why not?
+We are $80%$ confident that $\rho$, the population correlation coefficient for "BedroomAbvGr" and "FullBath," is between $0.334$ and $0.392$. We reject null hypothesis 3 in favor of the alternate hypothesis 3.
+
+**Discuss the meaning of your analysis.**
+
+All three of the correlation coefficients we tested are statistically significant, so there is a significant linear relationship between each pair of variables. This means we could model the linear relationship between each pair of variables in the population by using linear regression.
+
+**Would you be worried about familywise error? Why or why not?**
+
+```{r problem2_1_e_1}
+a <- 0.2
+m <- 3
+FWER <- 1 - ((1 - a)^m)
+
+```
+
+Because we've conducted three hypothesis tests, our confidence level is low, and our alpha is therefore high, yes, I would be concerned about familywise error. The familywise error rate (FWER) for these three hypothesis tests, meaning the probability of us committing a type I error (rejecting the null hypothesis when it is actually true), is 48.8%. That is very high for three tests.
+
+We can reduce the FWER using the Holm-Bonferonni formula. Our p-value for each pair of coefficients was the same very low value: 0.00000000000000022. So we will leave the order of the tests in the order we did them:
+
+$H_1 = 0.00000000000000022$
+
+$H_2 = 0.00000000000000022$
+
+$H_3 = 0.00000000000000022$
+
+Then we will sequentially confirm we should reject the null hypothesis for each test:
+
+```{r problem2_1_e_2}
+rank = 1
+HB1 <- a / (m - rank + 1)
+rank = 2
+HB2 <- a / (m - rank + 1)
+rank = 3
+HB3 <- a / (m - rank + 1)
+
+```
+
+$H_1 = 0.00000000000000022 < `r HB1`$
+
+$H_2 = 0.00000000000000022 < `r HB2`$
+
+$H_3 = 0.00000000000000022 < `r HB3`$
+
+So we were correct to reject all three null hypotheses after controlling for FWER.
 
 ### Linear Algebra and Correlation (5 Points):
 
-Invert your correlation matrix from above. (This is known as the precision matrix and contains variance inflation factors on the diagonal.)
+**Invert your correlation matrix from above. (This is known as the precision matrix and contains variance inflation factors on the diagonal.)**
 
 ```{r problem2_2_a}
+M_inv <- solve(M)
+print_M_inv <- to_LaTeX(round(M_inv, 3))
 
 ```
 
-Multiply the correlation matrix by the precision matrix, and then multiply the precision matrix by the correlation matrix.
+$M^{-1} = `r print_M_inv`$
 
-```{r problem2_2_b}
+**Multiply the correlation matrix by the precision matrix, and then multiply the precision matrix by the correlation matrix.**
+
+```{r problem2_2_b_1}
+M_M_inv <- M %*% M_inv
+print_M_M_inv <- to_LaTeX(round(M_M_inv, 3))
+```
+
+$M M^{-1} = `r print_M_M_inv`$
+
+```{r problem2_2_b_2}
+M_inv_M <- M_inv %*% M
+print_M_inv_M <- to_LaTeX(round(M_inv_M, 3))
 
 ```
 
-Conduct LU decomposition on the matrix.
+$M M^{-1} = `r print_M_inv_M`$
+
+**Conduct LU decomposition on the matrix.**
 
 ```{r problem2_2_c}
+triangles <- lu.decomposition(M)
+print_M <- to_LaTeX(round(M, 3))
+L <- triangles$L
+print_L <- to_LaTeX(round(L, 3))
+U <- triangles$U
+print_U <- to_LaTeX(round(U, 3))
 
 ```
+
+$M = `r print_M` = `r print_L` `r print_U` = LU$
 
 ### Calculus-Based Probability & Statistics (5 Points):
 
-Many times, it makes sense to fit a closed form distribution to data. Select a variable in the Kaggle.com training dataset that is skewed to the right, shift it so that the minimum value is absolutely above zero if necessary. Then load the MASS package and run fitdistr to fit an exponential probability density function. (See  [this link](https://stat.ethz.ch/R-manual/R-devel/library/MASS/html/fitdistr.html)).
+**Many times, it makes sense to fit a closed form distribution to data. Select a variable in the Kaggle.com training dataset that is skewed to the right, shift it so that the minimum value is absolutely above zero if necessary. Then load the MASS package and run fitdistr to fit an exponential probability density function. (See  [this link](https://stat.ethz.ch/R-manual/R-devel/library/MASS/html/fitdistr.html)).**
 
-```{r problem2_3_a}
+```{r problem2_3_a_1}
+ggplot(data = train_df, aes(x = LotArea / 1000)) +
+    geom_histogram(binwidth=5, color = palette[2], fill = palette[1]) +
+    scale_x_continuous(breaks = seq(0, 220, by = 10)) +
+    labs(x = "Lot Area in 1,000s", y = "Frequency",
+         title = "Distribution of Lot Area") +
+    theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.background = element_blank(),
+          axis.line = element_line(colour = palette[5]))
 
 ```
 
-Find the optimal value of $\lambda$ for this distribution, and then take 1000 samples from this exponential distribution using this value (e.g., rexp(1000, $\lambda$)).
+Lot Area is right-skewed, so we will use that variable.
+
+```{r problem2_3_a_2}
+lot_area_exp_fit <- fitdistr(train_df$LotArea, densfun = "exponential")
+
+```
+
+**Find the optimal value of $\lambda$ for this distribution, and then take 1000 samples from this exponential distribution using this value (e.g., rexp(1000, $\lambda$)).**
 
 ```{r problem2_3_b}
+optimal_lambda <- lot_area_exp_fit$estimate
+optimal_dist <- as.data.frame(rexp(1000, optimal_lambda))
+cols <- "optimal_lot_area"
+colnames(optimal_dist) <- cols
 
 ```
 
-Plot a histogram and compare it with a histogram of your original variable.
+**Plot a histogram and compare it with a histogram of your original variable.**
 
 ```{r problem2_3_c}
+ggplot(data = optimal_dist, aes(x = optimal_lot_area / 1000)) +
+    geom_histogram(binwidth=5, color = palette[2], fill = palette[1]) +
+    scale_x_continuous(breaks = seq(0, 220, by = 10)) +
+    labs(x = "Optimal Lot Area in 1,000s", y = "Frequency",
+         title = "Distribution of Optimal Lot Area") +
+    theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.background = element_blank(),
+          axis.line = element_line(colour = palette[5]))
 
 ```
 
-Using the exponential pdf, find the 5th and 95th percentiles using the cumulative distribution function (CDF).
+**Using the exponential pdf, find the 5th and 95th percentiles using the cumulative distribution function (CDF).**
 
 ```{r problem2_3_d}
 
 ```
 
-Also generate a 95% confidence interval from the empirical data, assuming normality.
+**Also generate a 95% confidence interval from the empirical data, assuming normality.**
 
 ```{r problem2_3_e}
 
 ```
 
-Finally, provide the empirical 5th percentile and 95th percentile of the data. Discuss. 
+**Finally, provide the empirical 5th percentile and 95th percentile of the data. Discuss.**
 
 ```{r problem2_3_f}
 
@@ -170,19 +595,109 @@ Finally, provide the empirical 5th percentile and 95th percentile of the data. D
 
 ### Modeling (10 points):
 
-Build some type of multiple regression  model and submit your model to the competition board.
+**Build some type of multiple regression model and submit your model to the competition board. Provide your complete model summary and results with analysis.**
+
+Since there are a lot of variables, we first use our knowledge of what might influence sale prices most to reduce the number of variables under consideration. We convert the single character variable to factor.
 
 ```{r problem2_4_a}
+cols <- c("LotArea", "Neighborhood", "OverallQual", "GrLivArea", "TotalBsmtSF",
+          "FullBath", "HalfBath", "BedroomAbvGr", "Fireplaces", "GarageCars",
+          "SalePrice")
+train_df_model_sub <- train_df[, colnames(train_df) %in% cols]
+train_df_model_sub$Neighborhood <- as.factor(train_df_model_sub$Neighborhood)
+reorder <- c("SalePrice", "LotArea", "Neighborhood", "OverallQual", "GrLivArea",
+             "TotalBsmtSF", "FullBath", "HalfBath", "BedroomAbvGr", "Fireplaces",
+             "GarageCars")
+train_df_model_sub <- train_df_model_sub[, reorder]
 
 ```
 
-Provide your complete model summary and results with analysis.
+We look at pairwise scatterplots to see if there appear to be linear relationships between our dependent variable and any of our possible predictors.
 
-```{r problem2_4_b}
+```{r }
+pairs(train_df_model_sub, gap=0.5)
 
 ```
 
-Report your Kaggle.com user name and score. Provide a screen snapshot of your score with your name identifiable.
+Overall quality, above ground square footage, and total basement square footage appear to have the strongest positive linear relationships with sale price, just eyeballing these. 
+
+We set our p-value threshold for predictor inclusion at p = 0.05 and perform backward elimination to decide what variables will come out of the model.
+
+```{r }
+train_df_model_sub_lm_full <- lm(SalePrice ~ Neighborhood + LotArea + 
+    OverallQual +  GrLivArea + TotalBsmtSF + FullBath + HalfBath + BedroomAbvGr +
+        Fireplaces + GarageCars, data = train_df_model_sub)
+summary(train_df_model_sub_lm_full)
+
+```
+Looking at the summary for our model, we see that our residuals median is not near 0. We also see that HalfBath has the highest p-value, so it is the first variable we will remove from the model. 
+
+```{r }
+train_df_model_sub_lm_update <- update(
+    train_df_model_sub_lm_full, .~. - HalfBath, data = train_df_model_sub)
+summary(train_df_model_sub_lm_update)
+
+```
+
+Now the variable with the highest p-value is FullBath, so we remove that from the model as well.
+
+```{r }
+train_df_model_sub_lm_update <- update(
+    train_df_model_sub_lm_update, .~. - FullBath, data = train_df_model_sub)
+summary(train_df_model_sub_lm_update)
+
+```
+
+Our Adjusted R-squared value is 0.8113, which is high and indicates these predictor variables explain about 81.13% of the variation in our dependent variable.
+
+```{r }
+par(mfrow=c(2,2))
+plot(train_df_model_sub_lm_update)
+
+```
+
+We can see by plotting the residuals vs. the fitted values that the residuals aren't uniformly scattered about 0, and we can see from the qq-plot that the residuals don't follow the normal distribution line. We will do a Box-Cox transformation to account for that. 
+
+```{r }
+lm_bc <- boxcox(train_df_model_sub_lm_update)
+print(lm_lambda <- lm_bc$x[which.max(lm_bc$y)])
+train_df_model_sub_lm_new <- lm(((SalePrice^(lm_lambda-1))/lm_lambda) ~ Neighborhood +
+    LotArea + OverallQual +  GrLivArea + TotalBsmtSF + BedroomAbvGr + Fireplaces +
+        GarageCars, data = train_df_model_sub)
+summary(train_df_model_sub_lm_new)
+
+```
+
+The Box-Cox transformation increased the adjusted R-squared to 0.8488, and it reduced the median of the residuals to close to 0. BedroomAbvGr is no longer statistically significant in the new model, so we will remove it.
+
+```{r }
+train_df_model_sub_lm_new <- update(
+    train_df_model_sub_lm_new, .~. - BedroomAbvGr, data = train_df_model_sub)
+summary(train_df_model_sub_lm_new)
+
+```
+
+We plot the residuals vs. the fitted values and look at a qq-plot again.
+
+```{r }
+par(mfrow=c(2,2))
+plot(train_df_model_sub_lm_new)
+
+```
+
+The residuals follow the normal distribution line much more closely now, though the lower tail is still problematic. 
+
+```{r }
+my_url2 <- "https://raw.githubusercontent.com/geedoubledee/data605_final_project/main/test.csv"
+test_df <- read.csv(my_url2)
+test_df$Neighborhood <- as.factor(test_df$Neighborhood)
+test_df$SalePrice <- predict(train_df_model_sub_lm_new, test_df)
+test_df$SalePrice <- inv_boxcox(test_df$SalePrice, lm_lambda)
+
+
+```
+
+**Report your Kaggle.com user name and score. Provide a screen snapshot of your score with your name identifiable.**
 
 ```{r problem2_4_c}
 
