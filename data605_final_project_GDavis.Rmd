@@ -17,7 +17,7 @@ library(knitr)
 library(matrixcalc)
 library(MASS)
 library(ldsr)
-
+library(EnvStats)
 
 ```
 
@@ -192,6 +192,8 @@ $P(Z > 3\lambda | Z > \lambda) = 1 - (1 - e^{-12\lambda}) = e^{-12\lambda} = e^{
 
 The probability that we will have more than 18 failures given that we have already had 6 failures is the same as the probability that we will have more than 12 failures: $0.135$.
 
+These are all memoryless.
+
 **(5 Points). Loosely investigate whether $P(YZ) = P(Y) P(Z)$ by building a table with quartiles and evaluating the marginal and joint probabilities.**
 
 ```{r}
@@ -242,7 +244,7 @@ test
 
 ```
 
-The p-value for the Chi Square test is large: 0.1345. So we reject the first null hypothesis that the variables are independent. 
+The p-value for the Chi Square test is very large: 0.9828. So we reject the first null hypothesis that the variables are independent. 
 
 Next we perform the Fisher's Exact test. 
 
@@ -252,13 +254,15 @@ test2
 
 ```
 
-The p-value for the Fisher's Exact test is also large: 0.1369. So we reject the second null hypothesis that the variables are independent. 
+The p-value for the Fisher's Exact test is 0.981, almost the same very large value. So we reject the second null hypothesis that the variables are independent. 
 
 ## Problem 2:
 
 ### Descriptive and Inferential Statistics (5 Points):
 
 **Provide univariate descriptive statistics and appropriate plots for the training data set.**
+
+First we reduce the number of variables to only ones we might be interested in describing/visualizing since there are so many. We print a summary of those.
 
 ```{r problem2_1_a_1}
 my_url <- "https://raw.githubusercontent.com/geedoubledee/data605_final_project/main/train.csv"
@@ -416,7 +420,7 @@ Alternate Hypothesis 1: $H_a: \rho \neq 0$
 cor.test(X[, "GrLivArea"], X[, "BedroomAbvGr"], conf.level=0.8)
 
 ```
-We are $80%$ confident that $\rho$, the population correlation coefficient for "GrLivArea" and "BedroomAbvGr," is between $0.496$ and $0.545$. We reject null hypothesis 1 in favor of the alternate hypothesis 1.
+We are $80\%$ confident that $\rho$, the population correlation coefficient for "GrLivArea" and "BedroomAbvGr," is between $0.496$ and $0.545$. We reject null hypothesis 1 in favor of the alternate hypothesis 1.
 
 Null Hypothesis 2: $H_0: \rho = 0$
 
@@ -427,7 +431,7 @@ cor.test(X[, "GrLivArea"], X[, "FullBath"], conf.level=0.8)
 
 ```
 
-We are $80%$ confident that $\rho$, the population correlation coefficient for "GrLivArea" and "FullBath," is between $0.609$ and $0.650$. We reject null hypothesis 2 in favor of the alternate hypothesis 2.
+We are $80\%$ confident that $\rho$, the population correlation coefficient for "GrLivArea" and "FullBath," is between $0.609$ and $0.650$. We reject null hypothesis 2 in favor of the alternate hypothesis 2.
 
 Null Hypothesis 3: $H_0: \rho = 0$
 
@@ -438,7 +442,7 @@ cor.test(X[, "BedroomAbvGr"], X[, "FullBath"], conf.level=0.8)
 
 ```
 
-We are $80%$ confident that $\rho$, the population correlation coefficient for "BedroomAbvGr" and "FullBath," is between $0.334$ and $0.392$. We reject null hypothesis 3 in favor of the alternate hypothesis 3.
+We are $80\%$ confident that $\rho$, the population correlation coefficient for "BedroomAbvGr" and "FullBath," is between $0.334$ and $0.392$. We reject null hypothesis 3 in favor of the alternate hypothesis 3.
 
 **Discuss the meaning of your analysis.**
 
@@ -575,23 +579,38 @@ ggplot(data = optimal_dist, aes(x = optimal_lot_area / 1000)) +
 
 ```
 
+This reduced the variance a lot. 
+
 **Using the exponential pdf, find the 5th and 95th percentiles using the cumulative distribution function (CDF).**
 
 ```{r problem2_3_d}
+percentiles <- quantile(optimal_dist$optimal_lot_area, c(0.05, .95))
+percentiles
+
 
 ```
 
 **Also generate a 95% confidence interval from the empirical data, assuming normality.**
 
-```{r problem2_3_e}
+```{r problem2_3_e_1}
+mean_LotArea <- mean(train_df$LotArea)
+sd_LotArea <- sd(train_df$LotArea)
+se_LotArea <- sd_LotArea / sqrt(length(train_df$LotArea))
+ci_actual_data <- c(mean_LotArea - 1.96 * se_LotArea, mean_LotArea + 1.96 * se_LotArea)
+names(ci_actual_data) <- c("LL", "UL")
+ci_actual_data
 
 ```
 
 **Finally, provide the empirical 5th percentile and 95th percentile of the data. Discuss.**
 
 ```{r problem2_3_f}
+percentiles2 <- quantile(train_df$LotArea, c(0.05, .95))
+percentiles2
 
 ```
+
+The distance between the max values and the 95th percentile is larger in the empirical data than in the transformed data, so the transformed data was less skewed.
 
 ### Modeling (10 points):
 
@@ -659,7 +678,7 @@ plot(train_df_model_sub_lm_update)
 We can see by plotting the residuals vs. the fitted values that the residuals aren't uniformly scattered about 0, and we can see from the qq-plot that the residuals don't follow the normal distribution line. We will do a Box-Cox transformation to account for that. 
 
 ```{r }
-lm_bc <- boxcox(train_df_model_sub_lm_update)
+lm_bc <- MASS::boxcox(train_df_model_sub_lm_update)
 print(lm_lambda <- lm_bc$x[which.max(lm_bc$y)])
 train_df_model_sub_lm_new <- lm(((SalePrice^lm_lambda-1)/lm_lambda) ~ Neighborhood +
     LotArea + OverallQual +  GrLivArea + TotalBsmtSF + BedroomAbvGr + Fireplaces +
