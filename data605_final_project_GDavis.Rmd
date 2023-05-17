@@ -514,7 +514,7 @@ print_M_inv_M <- to_LaTeX(round(M_inv_M, 3))
 
 ```
 
-$M M^{-1} = `r print_M_inv_M`$
+$M^{-1} M = `r print_M_inv_M`$
 
 **Conduct LU decomposition on the matrix.**
 
